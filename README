@@ -1,0 +1,21 @@
+This is a collection of routines for quality-aware alignment of Roche/454 reads,
+for use either from C or from Python 3 (including a Python 3 C extension).
+Functions with asw_* prefix implement asymmetric Smith- Waterman-like algorithm
+with inverse scores (URL: http://dx.doi.org/10.1101/gr.6468307)
+ 
+
+How to install:
+
+ python3 setup.py build
+ sudo python3 setup.py install
+
+On Mac OS X, if one does not wish to create a PPC binary:
+
+env CFLAGS="-std=c99" ARCHFLAGS="-arch i386 -arch x86_64" python3 setup.py build
+sudo env CFLAGS="-std=c99" ARCHFLAGS="-arch i386 -arch x86_64" python3 setup.py install
+
+To change compiler options, find the Makefile corresponding to your
+Python installation. On my Mac OS X Snow Leopard, the Makefile for the
+Python 3 installation is at:
+
+/Library/Frameworks/Python.framework/Versions/3.1/lib/python3.1/config/Makefile

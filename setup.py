@@ -14,5 +14,11 @@ setup(
         version="0.0.1",
         description="Module for quality-aware realignment",
         platforms = ["Linux", "Windows", "Mac OS X"],
-        long_description="qxalign is..."
+        long_description="""\
+This is a collection of routines for quality-aware alignment of Roche/454 reads,
+for use either from C or from Python 3 (including a Python 3 C extension).
+Functions with asw_* prefix implement asymmetric Smith- Waterman-like algorithm
+with inverse scores (URL: http://dx.doi.org/10.1101/gr.6468307)
+ 
+"""
     )

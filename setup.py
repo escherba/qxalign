@@ -2,7 +2,6 @@ import re
 import os
 import itertools
 from setuptools import setup, Extension
-# from distutils.core import setup, Extension
 from glob import glob
 
 

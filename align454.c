@@ -7,7 +7,7 @@
  *                  reads. Functions with asw_* prefix implement asymmetric Smith-
  *                  Waterman-like algorithm with inverse scores (URL:
  *                  http://dx.doi.org/10.1101/gr.6468307)
- * 
+ *
  *        Version:  1.0
  *        Created:  04/05/2011 22:05:57
  *       Revision:  none
@@ -75,8 +75,21 @@
  *                           0    1    2    3    4    5    6    7    8 */
 const char cigar_chars[] = {'M', 'I', 'D', 'N', 'S', 'H', 'P', '=', 'X'};
 
+/*
+ * calculate number of digits (plus sign) needed to show a number in decimal format
+ */
+int ndigits(int i);
 
-/* 
+int ndigits(int i) {
+    int n = i < 0 ? 2 : 1;
+    while (i > 9) {
+        n++;
+        i /= 10;
+    }
+    return n;
+}
+
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_new
  *  Description:  Allocate and initialize an Alignment struct
@@ -86,14 +99,14 @@ Alignment_ASW* asw_new(int MATCH_PEN, int MISMATCH_PEN, int GAP_OPEN_EXTEND, int
 {
         /* use stdlib functions */
         return asw_init(
-                asw_alloc(malloc, realloc, free), 
-                MATCH_PEN, 
-                MISMATCH_PEN, 
-                GAP_OPEN_EXTEND, 
+                asw_alloc(malloc, realloc, free),
+                MATCH_PEN,
+                MISMATCH_PEN,
+                GAP_OPEN_EXTEND,
                 GAP_EXTEND);
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_alloc
  *  Description:  Allocate an Alignment struct and set its members to zero
@@ -125,7 +138,7 @@ Alignment_ASW* asw_alloc(
 
         if ((al->matTra = (cigar_t**)p_malloc(sizeof(cigar_t*) * 1u)) == NULL)
                 goto cleanup;
-       
+
 #ifdef DEBUG
         if ((al->matPen = (int**)p_malloc(sizeof(int*) * 1u)) == NULL)
                 goto cleanup;
@@ -140,11 +153,11 @@ Alignment_ASW* asw_alloc(
         al->phred_offset = 0;
 
         al->db = NULL;
-	al->subdb = NULL;
+        al->subdb = NULL;
         al->query = NULL;
-	al->subquery = NULL;
+        al->subquery = NULL;
         al->qual = NULL;
-	al->subqual = NULL;
+        al->subqual = NULL;
 
         al->vecPen_m1_act = NULL;
         al->vecPen_m_act = NULL;
@@ -174,7 +187,7 @@ cleanup:
 }
 
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_set_phoffset
  *  Description:  Set  PHRED offset in the ASCII encoding
@@ -185,11 +198,11 @@ void asw_set_phoffset(Alignment_ASW* al, int phred_offset)
         al->phred_offset = phred_offset;
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_init
  *  Description:  Initialize an Alignment struct using provided penalty scores. The
- *                function is written in such a way as to allow multiple calls on a 
+ *                function is written in such a way as to allow multiple calls on a
  *                single object instance.
  * =====================================================================================
  */
@@ -212,7 +225,7 @@ Alignment_ASW* asw_init(Alignment_ASW* al, int MATCH_PEN, int MISMATCH_PEN, int 
         return al;
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_free
  *  Description:  Free an Alignment struct
@@ -275,7 +288,7 @@ void asw_free(Alignment_ASW *al) {
 }
 
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_print_cigar
  *  Description:  Print CIGAR traceback to specified file or stream
@@ -287,15 +300,46 @@ void asw_print_cigar(const Alignment_ASW* al, FILE *fp)
         const cigar_t * cigar_end = al->cigar_end;
         for (; cigar_p < cigar_end; ++cigar_p) {
                 cigar_t cigar = *cigar_p;
-                fprintf(fp, "%d%c ", 
+                fprintf(fp, "%d%c ",
                         cigar >> BAM_CIGAR_SHIFT,
                         cigar_chars[cigar & BAM_CIGAR_MASK]);
         }
-        fputc('\n', fp); fflush(fp);
+        fputc('\n', fp);
+        fflush(fp);
+}
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  asw_show_cigar
+ *  Description:  Print CIGAR traceback to a (string) buffer
+ * =====================================================================================
+ */
+
+const char* asw_show_cigar(const Alignment_ASW* al)
+{
+        size_t len = 1;
+        const cigar_t * cigar_p = al->cigar_begin;
+        const cigar_t * cigar_end = al->cigar_end;
+        for (; cigar_p < cigar_end; ++cigar_p) {
+            cigar_t cigar = *cigar_p;
+            len += ndigits(cigar >> BAM_CIGAR_SHIFT) + 2;
+        }
+        if (len > 1) { len -= 1; }  // subtract last separator
+        char *buf = (char*)calloc(len, sizeof(char));
+        cigar_p = al->cigar_begin;
+        cigar_end = al->cigar_end;
+        for (char *p = buf; cigar_p < cigar_end; ++cigar_p) {
+            cigar_t cigar = *cigar_p;
+            int num = cigar >> BAM_CIGAR_SHIFT;
+            sprintf(p, "%d%c ", num, cigar_chars[cigar & BAM_CIGAR_MASK]);
+            p += sizeof(char) * ndigits(num) + 2;
+        }
+        buf[len - 1] = '\0';
+        return buf;
 }
 
 #ifdef DEBUG
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_print_matrix1
  *  Description:  Prints a 2D array together with query sequence, database sequence,
@@ -365,7 +409,7 @@ void asw_print_matrix1(const Alignment_ASW *al, FILE *fp)
 }
 #endif
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  resize_matrix1
  *  Description:  Reallocates a 2D array such that the amount of work is minimized if
@@ -374,7 +418,7 @@ void asw_print_matrix1(const Alignment_ASW *al, FILE *fp)
  */
 cigar_t ** resize_matrix1(Alignment_ASW* al,
                           cigar_t **matTra,
-                          size_t new_x_len, 
+                          size_t new_x_len,
                           size_t new_y_len)
 {
         size_t old_x_len = al->subdb_len,
@@ -389,7 +433,7 @@ cigar_t ** resize_matrix1(Alignment_ASW* al,
                 for (; matTra_p < matTra_end; ++matTra_p) {
                         al->p_free(*matTra_p);
                 }
-                cigar_t ** tmp_matTra 
+                cigar_t ** tmp_matTra
                       = (cigar_t**)al->p_realloc(matTra, sizeof(cigar_t*) * (new_y_len + 1u));
                 if (tmp_matTra != NULL) matTra = tmp_matTra; else goto error;
 
@@ -417,7 +461,7 @@ error:
 }
 
 #ifdef DEBUG
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  resize_matrix2
  *  Description:  Reallocates a 2D array such that the amount of work is minimized if
@@ -426,7 +470,7 @@ error:
  */
 int ** resize_matrix2(Alignment_ASW* al,
                       int **matTra,
-                      size_t new_x_len, 
+                      size_t new_x_len,
                       size_t new_y_len)
 {
         size_t old_x_len = al->subdb_len,
@@ -441,7 +485,7 @@ int ** resize_matrix2(Alignment_ASW* al,
                 for (; matTra_p < matTra_end; ++matTra_p) {
                         al->p_free(*matTra_p);
                 }
-                int ** tmp_matTra 
+                int ** tmp_matTra
                         = (int**)al->p_realloc(matTra, sizeof(int*) * (new_y_len + 1u));
                 if (tmp_matTra != NULL) matTra = tmp_matTra; else goto error;
 
@@ -469,7 +513,7 @@ error:
 }
 #endif
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_prepare_query
  *  Description:  Assign data fields to prepare for the alignment
@@ -482,13 +526,13 @@ int asw_prepare_query(Alignment_ASW *al,
                  uint32_t clip_head,
                  uint32_t clip_tail)
 {
-	size_t m_subquery_len = m_query_len - clip_head - clip_tail;
+        size_t m_subquery_len = m_query_len - clip_head - clip_tail;
 
-	al->query_len = m_query_len;
+        al->query_len = m_query_len;
         al->query = m_query;
-	al->subquery = m_query + clip_head;
+        al->subquery = m_query + clip_head;
         al->qual = m_qual;
-	al->subqual = m_qual + clip_head;
+        al->subqual = m_qual + clip_head;
 
         /* Resize matrices and vectors
          *
@@ -524,7 +568,7 @@ error:
         return -1;
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_prepare_db
  *  Description:  Assign data fields to prepare for the alignment
@@ -536,11 +580,11 @@ int asw_prepare_db(Alignment_ASW *al,
                  uint32_t clip_head,
                  uint32_t clip_tail)
 {
-	size_t m_subdb_len = m_db_len - clip_head - clip_tail;
+        size_t m_subdb_len = m_db_len - clip_head - clip_tail;
 
         al->db = m_db;
-	al->db_len = m_db_len;
-	al->subdb = m_db + clip_head;
+        al->db_len = m_db_len;
+        al->subdb = m_db + clip_head;
 
         /* Resize matrices and vectors
          *
@@ -605,7 +649,7 @@ error:
         return -1;
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_prepare
  *  Description:  Assign data fields to prepare for the alignment
@@ -620,17 +664,17 @@ int asw_prepare(Alignment_ASW *al,
                  uint32_t clip_head,
                  uint32_t clip_tail)
 {
-	size_t m_subdb_len = m_db_len - clip_head - clip_tail,
-	       m_subquery_len = m_query_len - clip_head - clip_tail;
+        size_t m_subdb_len = m_db_len - clip_head - clip_tail,
+               m_subquery_len = m_query_len - clip_head - clip_tail;
 
         al->db = m_db;
-	al->db_len = m_db_len;
-	al->query_len = m_query_len;
-	al->subdb = m_db + clip_head;
+        al->db_len = m_db_len;
+        al->query_len = m_query_len;
+        al->subdb = m_db + clip_head;
         al->query = m_query;
-	al->subquery = m_query + clip_head;
+        al->subquery = m_query + clip_head;
         al->qual = m_qual;
-	al->subqual = m_qual + clip_head;
+        al->subqual = m_qual + clip_head;
 
         /* Resize matrices and vectors
          *
@@ -697,7 +741,7 @@ error:
 }
 
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_align_init_semi
  *  Description:  Fill out top row in the alignment matrix (semiglobal)
@@ -705,9 +749,9 @@ error:
  */
 void asw_align_init_semi(Alignment_ASW *al)
 {
-	const uint8_t* m_subqual = al->subqual;
+        const uint8_t* m_subqual = al->subqual;
 
-	size_t m_subdb_len = al->subdb_len;
+        size_t m_subdb_len = al->subdb_len;
 
         int *gopen_penalty = al->gopen_penalty - al->phred_offset,
             *gext_penalty = al->gext_penalty - al->phred_offset;
@@ -758,7 +802,7 @@ void asw_align_init_semi(Alignment_ASW *al)
         }
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_align_init
  *  Description:  Fill out top row in the alignment matrix (global)
@@ -766,9 +810,9 @@ void asw_align_init_semi(Alignment_ASW *al)
  */
 void asw_align_init(Alignment_ASW *al)
 {
-	const uint8_t* m_subqual = al->subqual;
+        const uint8_t* m_subqual = al->subqual;
 
-	size_t m_subdb_len = al->subdb_len;
+        size_t m_subdb_len = al->subdb_len;
 
         int *gopen_penalty = al->gopen_penalty - al->phred_offset,
             *gext_penalty = al->gext_penalty - al->phred_offset;
@@ -820,20 +864,20 @@ void asw_align_init(Alignment_ASW *al)
         }
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_align
- *  Description:  Performs global affine-gap alignment according to Gotoh algorithm 
+ *  Description:  Performs global affine-gap alignment according to Gotoh algorithm
  *                using asymmetric quality-weighted scoring
  * =====================================================================================
  */
 void asw_align(Alignment_ASW *al)
 {
-	const char *m_subdb = al->subdb,
-	           *m_subquery = al->subquery;
-	const uint8_t* m_subqual = al->subqual;
-	size_t m_subdb_len = al->subdb_len,
-	       m_subquery_len = al->subquery_len;
+        const char *m_subdb = al->subdb,
+                   *m_subquery = al->subquery;
+        const uint8_t* m_subqual = al->subqual;
+        size_t m_subdb_len = al->subdb_len,
+               m_subquery_len = al->subquery_len;
 
         int GAP_OPEN_EXTEND = al->GAP_OPEN_EXTEND,
             GAP_EXTEND = al->GAP_EXTEND;
@@ -910,7 +954,7 @@ void asw_align(Alignment_ASW *al)
                         int wI_open = vecPen_m[n1] + gopen_pen;
                         int wI_extend = vecIns_m[n1] + gext_pen;
 
-                        /* given equal scores, prefer extending 
+                        /* given equal scores, prefer extending
                          * existing gaps to opening new ones */
                         if (wD_open < wD_extend) {
                                 storedDel_score = wD = wD_open;
@@ -973,13 +1017,13 @@ void asw_align(Alignment_ASW *al)
                 /* Swap I_ext_m1 and I_ext_m */
                 utmp = I_ext_m1, I_ext_m1 = I_ext_m, I_ext_m = utmp;
         }
-        /* At this point, vecIns_m and vecPen_m point to their corresponding 
+        /* At this point, vecIns_m and vecPen_m point to their corresponding
          * last rows, and vecIns_m1 and vecPen_m1 point to penultimate rows */
 
         al->vecPen_lastRow = vecPen_m;
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_locate_minscore
  *  Description:  Find minimum alignment score (in last row)
@@ -1005,7 +1049,7 @@ int asw_locate_minscore(Alignment_ASW* al)
         return opt_score;
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_trace
  *  Description:  Produce a traceback given an Alignment_ASW struct
@@ -1018,7 +1062,7 @@ int asw_locate_minscore(Alignment_ASW* al)
  */
 int asw_trace(Alignment_ASW* al)
 {
-	assert(al->query_len >= al->subquery_len);
+        assert(al->query_len >= al->subquery_len);
 
         /* resize cigar string to query length */
         cigar_t *rcigar = (cigar_t*)al->p_realloc(al->rcigar, sizeof(cigar_t) * (al->subquery_len + 4u));
@@ -1029,7 +1073,7 @@ int asw_trace(Alignment_ASW* al)
             n1 = (int)al->opt_score_col;
 
         cigar_t ** matTra = al->matTra;
-        
+
         cigar_t cigar = matTra[m1][n1];
         /* z - length of CIGAR operation */
         uint32_t z = cigar >> BAM_CIGAR_SHIFT;
@@ -1100,7 +1144,7 @@ error:
         return -1;
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_append_softclip
  *  Description:  extend CIGAR trace outer boundaries to previous clipping
@@ -1132,7 +1176,7 @@ void asw_append_softclip(Alignment_ASW* al)
                                    *subdb = al->subdb + al->offset;
                         while (clip_head > 0u && *--subquery == *--subdb) {
                                 ++match_add;
-				--clip_head;
+                                --clip_head;
                         }
                         if (match_add > 0u) {
                                 *al->cigar_begin = ((z + match_add) << BAM_CIGAR_SHIFT)
@@ -1144,7 +1188,7 @@ void asw_append_softclip(Alignment_ASW* al)
                                                    | BAM_CSOFT_CLIP;
                         }
                 } else {
-			/* add clipping */
+                        /* add clipping */
                         *(--al->cigar_begin) = (clip_head << BAM_CIGAR_SHIFT)
                                                | BAM_CSOFT_CLIP;
                 }
@@ -1169,10 +1213,10 @@ void asw_append_softclip(Alignment_ASW* al)
 
                         while (clip_tail > 0u && *++subquery == *++subdb) {
                                 ++match_add;
-				--clip_tail;
+                                --clip_tail;
                         }
                         if (match_add > 0u) {
-                                *(al->cigar_end - 1u) 
+                                *(al->cigar_end - 1u)
                                         = ((z + match_add) << BAM_CIGAR_SHIFT) | state;
                         }
                         if (clip_tail > 0u) {
@@ -1181,7 +1225,7 @@ void asw_append_softclip(Alignment_ASW* al)
                                 ++al->cigar_end;
                         }
                 } else {
-			/* add clipping */
+                        /* add clipping */
                         *al->cigar_end = (clip_tail << BAM_CIGAR_SHIFT)
                                                | BAM_CSOFT_CLIP;
                         ++al->cigar_end;
@@ -1189,7 +1233,7 @@ void asw_append_softclip(Alignment_ASW* al)
         }
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_append_hardclip
  *  Description:  extend CIGAR trace outer boundaries to previous clipping
@@ -1211,7 +1255,7 @@ void asw_append_hardclip(Alignment_ASW* al, uint32_t clip_head, uint32_t clip_ta
                         *al->cigar_begin = ((clip_head + z) << BAM_CIGAR_SHIFT)
                                        | BAM_CHARD_CLIP;
                 } else {
-			/* add clipping */
+                        /* add clipping */
                         *(--al->cigar_begin) = (clip_head << BAM_CIGAR_SHIFT)
                                                | BAM_CHARD_CLIP;
                 }
@@ -1226,7 +1270,7 @@ void asw_append_hardclip(Alignment_ASW* al, uint32_t clip_head, uint32_t clip_ta
                         *(al->cigar_end - 1u) = ((clip_tail + z) << BAM_CIGAR_SHIFT)
                                     | BAM_CHARD_CLIP;
                 } else {
-			/* add clipping */
+                        /* add clipping */
                         *al->cigar_end = (clip_tail << BAM_CIGAR_SHIFT)
                                                | BAM_CHARD_CLIP;
                         ++al->cigar_end;
@@ -1234,12 +1278,12 @@ void asw_append_hardclip(Alignment_ASW* al, uint32_t clip_head, uint32_t clip_ta
         }
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_softclip_trace
  *  Description:  replace edits at the end of the alignment that are not exact matches
  *                with soft clipping
- * 
+ *
  *     Modifies:  al->rcigar
  *                al->cigar_begin
  *                al->cigar_end
@@ -1308,7 +1352,7 @@ void asw_softclip_trace(Alignment_ASW* al)
         al->cigar_end = fc3p;
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_compact_trace
  *  Description:  collapse the CIGAR string by treating matches and mismatches as the
@@ -1357,19 +1401,19 @@ void asw_compact_trace(Alignment_ASW* al)
         al->cigar_begin = fc5p;
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  getAlignmentStart
- *  Description:  Get starting position of alignment in the genome given offset 
- *  		  obtained from realignment.
+ *  Description:  Get starting position of alignment in the genome given offset
+ *                    obtained from realignment.
  * =====================================================================================
  */
 int32_t asw_getAlignmentStart(const Alignment_ASW* al, int alstart) {
-	assert(al->subdb >= al->db);
-	return max(0, alstart) + al->offset + (al->subdb - al->db);
+        assert(al->subdb >= al->db);
+        return max(0, alstart) + al->offset + (al->subdb - al->db);
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_getBasicAlignPair
  *  Description:  Allocates and initializes a BASICALIGNPAIR struct for use in
@@ -1398,9 +1442,9 @@ BASICALIGNPAIR* asw_getBasicAlignPair(const Alignment_ASW* al) {
                 uint32_t op = cigar & BAM_CIGAR_MASK;
                 uint32_t op_len = cigar >> BAM_CIGAR_SHIFT;
                 switch (op) {
-		case BAM_CHARD_CLIP:
-			/* do nothing */
-			break;
+                case BAM_CHARD_CLIP:
+                        /* do nothing */
+                        break;
                 case BAM_CSOFT_CLIP:
                         /* diagonal move: either match or mismatch */
                         for (; i < op_len; ++i) {
@@ -1413,7 +1457,7 @@ BASICALIGNPAIR* asw_getBasicAlignPair(const Alignment_ASW* al) {
                 case BAM_CSEQ_MISMATCH:
                         /* diagonal move: either match or mismatch */
                         for (; i < op_len; ++i) {
-                                *seq1_p = *seq1source_p; 
+                                *seq1_p = *seq1source_p;
                                 ++seq1_p, ++seq1source_p;
                                 *seq2_p = *seq2source_p;
                                 ++seq2_p, ++seq2source_p;
@@ -1458,11 +1502,11 @@ BASICALIGNPAIR* asw_getBasicAlignPair(const Alignment_ASW* al) {
         bap->sequence2start = 0;
         bap->sequence2end = al->subquery_len - 1;
         bap->score = al->opt_score;
-        bap->length = (int)len; 
+        bap->length = (int)len;
         return bap;
 }
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  freeBasicAlignPair
  *  Description:  Frees a BASICALIGNPAIR struct

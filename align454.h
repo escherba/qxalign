@@ -6,7 +6,7 @@
  *    Description:  Collection of routines for quality-aware alignment of Roche/454
  *                  reads. Functions with asw_* prefix implement asymmetric Smith-
  *                  Waterman-like algorithm with inverse scores (URL:
- *                  http://dx.doi.org/10.1101/gr.6468307) 
+ *                  http://dx.doi.org/10.1101/gr.6468307)
  *
  *        Version:  1.0
  *        Created:  04/05/2011 10:05:57
@@ -48,27 +48,27 @@ struct Alignment_ASW {
 
         /* pointers to external arrays */
         const char *db,
-	           *subdb,
+                   *subdb,
                    *query,
-		   *subquery;
+                   *subquery;
         const uint8_t *qual,
-	              *subqual;
+                      *subqual;
 
-	/* The following must always hold:
-	 *
-	 * subdb >= db && 
-	 * subquery >= query && 
-	 * subqual >= qual && 
-	 * subdb_len <= db_len &&
-	 * subquery_len <= query_len &&
-	 * subquery - query == subqual - qual
-	 */
+        /* The following must always hold:
+         *
+         * subdb >= db &&
+         * subquery >= query &&
+         * subqual >= qual &&
+         * subdb_len <= db_len &&
+         * subquery_len <= query_len &&
+         * subquery - query == subqual - qual
+         */
 
         /* lengths of these external arrays */
         size_t db_len,
-	       subdb_len,
+               subdb_len,
                query_len,
-	       subquery_len;
+               subquery_len;
 
         int *vecPen_m_act,      /* "previous" row in matPen */
             *vecPen_m1_act,     /* "current" row in matPen */
@@ -122,17 +122,17 @@ typedef struct
 }   BASICALIGNPAIR;
 
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_new
  *  Description:  Allocate and initialize an Alignment_ASW struct
  * =====================================================================================
  */
 Alignment_ASW* asw_new(int MATCH_PEN,
-                       int MISMATCH_PEN, 
-                       int GAP_OPEN_EXTEND, 
+                       int MISMATCH_PEN,
+                       int GAP_OPEN_EXTEND,
                        int GAP_EXTEND);
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_alloc
  *  Description:  Allocate an Alignment_ASW struct and set its members to zero
@@ -143,18 +143,18 @@ Alignment_ASW* asw_alloc(
         void *(*p_realloc)(void * ptr, size_t size),
         void (p_free)(void * ptr));
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_init
  *  Description:  Initialize an Alignment_ASW struct using provided penalty scores
  * =====================================================================================
  */
 Alignment_ASW* asw_init(Alignment_ASW *al,
-                        int MATCH_PEN, 
-                        int MISMATCH_PEN, 
-                        int GAP_OPEN_EXTEND, 
+                        int MATCH_PEN,
+                        int MISMATCH_PEN,
+                        int GAP_OPEN_EXTEND,
                         int GAP_EXTEND);
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_free
  *  Description:  Free an Alignment_ASW struct
@@ -162,7 +162,7 @@ Alignment_ASW* asw_init(Alignment_ASW *al,
  */
 void asw_free(Alignment_ASW *al);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_set_phoffset
  *  Description:  Set  PHRED offset in the ASCII encoding
@@ -170,7 +170,7 @@ void asw_free(Alignment_ASW *al);
  */
 void asw_set_phoffset(Alignment_ASW* al, int phred_offset);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_prepare_query
  *  Description:  Assign data fields to prepare for the alignment
@@ -182,7 +182,7 @@ int asw_prepare_query(Alignment_ASW *al,
                  size_t m_query_len,
                  uint32_t clip_head,
                  uint32_t clip_tail);
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_prepare_db
  *  Description:  Assign data fields to prepare for the alignment
@@ -194,7 +194,7 @@ int asw_prepare_db(Alignment_ASW *al,
                  uint32_t clip_head,
                  uint32_t clip_tail);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_prepare
  *  Description:  Assign data fields and prepare for alignment
@@ -206,9 +206,9 @@ int asw_prepare(Alignment_ASW *al,
                  const char* m_query,
                  const uint8_t* m_qual,
                  size_t query_string_len,
-		 uint32_t clip_head,
-		 uint32_t clip_tail);
-/* 
+                 uint32_t clip_head,
+                 uint32_t clip_tail);
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_align_init
  *  Description:  Fill out top row in the alignment matrix (global)
@@ -216,7 +216,7 @@ int asw_prepare(Alignment_ASW *al,
  */
 void asw_align_init(Alignment_ASW *al);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_align_init_semi
  *  Description:  Fill out top row in the alignment matrix (semiglobal)
@@ -225,16 +225,16 @@ void asw_align_init(Alignment_ASW *al);
 void asw_align_init_semi(Alignment_ASW *al);
 
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_align
- *  Description:  Performs an global affine-gap alignment according to Gotoh algorithm 
+ *  Description:  Performs an global affine-gap alignment according to Gotoh algorithm
  *                using asymmetric quality-weighted scoring
  * =====================================================================================
  */
 void asw_align(Alignment_ASW *al);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_locate_minscore
  *  Description:  Find minimum alignment score (in last row)
@@ -242,7 +242,7 @@ void asw_align(Alignment_ASW *al);
  */
 int asw_locate_minscore(Alignment_ASW* al);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_trace
  *  Description:  Produce a traceback given an Alignment_ASW struct
@@ -250,7 +250,7 @@ int asw_locate_minscore(Alignment_ASW* al);
  */
 int asw_trace(Alignment_ASW* al);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_append_softclip
  *  Description:  extend CIGAR trace outer boundaries to previous clipping
@@ -263,7 +263,7 @@ int asw_trace(Alignment_ASW* al);
  */
 void asw_append_softclip(Alignment_ASW* al);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_append_hardclip
  *  Description:  extend CIGAR trace outer boundaries to previous clipping
@@ -275,7 +275,7 @@ void asw_append_softclip(Alignment_ASW* al);
  */
 void asw_append_hardclip(Alignment_ASW* al, uint32_t clip_head, uint32_t clip_tail);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_softclip_trace
  *  Description:  Replace non-matching edits at the ends with soft clipping
@@ -283,7 +283,7 @@ void asw_append_hardclip(Alignment_ASW* al, uint32_t clip_head, uint32_t clip_ta
  */
 void asw_softclip_trace(Alignment_ASW* al);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_compact_trace
  *  Description:  Replace BAM_CSEQ_MATCH and BAM_CSEQ_MISMATCH with BAM_CMATCH
@@ -291,16 +291,16 @@ void asw_softclip_trace(Alignment_ASW* al);
  */
 void asw_compact_trace(Alignment_ASW* al);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_getAlignmentStart
- *  Description:  Get starting position of alignment in the genome given offset 
+ *  Description:  Get starting position of alignment in the genome given offset
  *                obtained from realignment.
  * =====================================================================================
  */
 int32_t asw_getAlignmentStart(const Alignment_ASW* al, int alstart);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_getBasicAlignPair
  *  Description:  Allocates and initializes a BASICALIGNMENTPAIR struct for use in
@@ -309,7 +309,7 @@ int32_t asw_getAlignmentStart(const Alignment_ASW* al, int alstart);
  */
 BASICALIGNPAIR* asw_getBasicAlignPair(const Alignment_ASW* al);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  freeBasicAlignPair
  *  Description:  Frees a BASICALIGNPAIR struct
@@ -317,7 +317,7 @@ BASICALIGNPAIR* asw_getBasicAlignPair(const Alignment_ASW* al);
  */
 void freeBasicAlignPair(BASICALIGNPAIR* ap);
 
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_print_cigar
  *  Description:  Print CIGAR traceback to specified file or stream
@@ -325,8 +325,16 @@ void freeBasicAlignPair(BASICALIGNPAIR* ap);
  */
 void asw_print_cigar(const Alignment_ASW* al, FILE *fp);
 
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  asw_show_cigar
+ *  Description:  Print CIGAR traceback to specified file or stream
+ * =====================================================================================
+ */
+const char* asw_show_cigar(const Alignment_ASW* al);
+
 #ifdef DEBUG
-/* 
+/*
  * ===  FUNCTION  ======================================================================
  *         Name:  asw_print_matrix1
  *  Description:  Prints a 2D array together with query sequence, database sequence,
@@ -336,6 +344,6 @@ void asw_print_cigar(const Alignment_ASW* al, FILE *fp);
 void asw_print_matrix1(const Alignment_ASW *al, FILE *fp);
 #endif
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 }
 #endif

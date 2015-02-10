@@ -1,2 +1,16 @@
 .DS_Store
-*.swp
+*.sw[op]
+*.py[cod]
+
+*.so
+
+build/
+dist/
+
+*.egg-info/
+
+env/
+
+nosetests.xml
+cover/
+.coverage

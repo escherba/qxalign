@@ -1,5 +1,5 @@
-qxalign.c
-align454.c
-align454.h
+*.c
+*.h
 README
+LICENSE
 setup.py

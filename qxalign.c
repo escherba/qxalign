@@ -491,7 +491,7 @@ static PyMethodDef Qxalign_methods[] = {
  *-----------------------------------------------------------------------------*/
 static PyTypeObject QxalignType = {
         PyVarObject_HEAD_INIT(NULL, 0)
-                "noddy.Qxalign",             /* tp_name */
+                "qxalign.Qxalign",             /* tp_name */
         sizeof(Qxalign),             /* tp_basicsize */
         0,                         /* tp_itemsize */
         (destructor)Qxalign_dealloc, /* tp_dealloc */

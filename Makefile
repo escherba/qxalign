@@ -15,8 +15,8 @@ test: dev
 	$(PYTHON) `which nosetests` $(NOSEARGS)
 	$(PYENV) py.test README.rst
 
-dev: env/make.dev
-env/make.dev: $(EXTRAS_REQS) | env
+extras: env/make.extras
+env/make.extras: $(EXTRAS_REQS) | env
 	rm -rf env/build
 	$(PYENV) for req in $?; do pip install -r $$req; done
 	touch $@
